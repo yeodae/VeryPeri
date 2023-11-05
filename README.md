@@ -41,8 +41,8 @@
 | - 공지사항/이용안내/FAQ 구현 | - 회원정보 수정의 프로필 변경 | |
 | - 멤버십 메인, 아티스트별 뷰 프론트 | | |
 
-
-
+<br>
+<br>
 
 ## ⚙ 개발환경 & 🛠 Stacks
 
@@ -63,5 +63,24 @@
   <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white"> 
 * 기타 도구 및 라이브러리: 
   <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
+  <br>
+  <br>
+## ⚙ 주요 기능
+📌동환따봉도치야 도와줘!
+📌
+📌
+<br>
+<br>
+
+## ⭐ 기능구성도 & DB
+<img src="https://github.com/dkth1122/Project_4/assets/130977379/e4aa8e6e-5093-4d97-8ac3-f5e5d1db9657" />
+<br>
+<br>
+## ⚙ DB 설계
+<img src="https://github.com/dkth1122/Project_4/assets/130977379/3d2e5f87-a2d3-4fad-88f7-65feb206ebf9" />
+<img src="https://github.com/dkth1122/Project_4/assets/130977379/8cd6a7d3-0d55-4107-a711-b7f4df2e9e7d" />
+<br>
+<br>
+
 ## 📺 시연 영상 
-시연 영상 풀버전 : https://www.youtube.com/watch?v=QXB6QWtbodI
+* 시연 영상 풀버전 : https://www.youtube.com/watch?v=QXB6QWtbodI
