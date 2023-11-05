@@ -84,6 +84,10 @@
 ## [📺 시연 영상](https://www.youtube.com/watch?v=QXB6QWtbodI)
 <br>
 
+
+## [💾 발표 PPT](https://drive.google.com/file/d/1rG5kZhM1EaDUcfW3BLHAX0UXETSJoOiq/view?usp=drive_link)
+<br>
+
 ## [💾 Mysql sql문](https://drive.google.com/file/d/1p2fX7tVw0cZz6_HYXW37GWAoF2mk28dh/view?usp=drive_link)
 <br>
 
