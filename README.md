@@ -1,6 +1,6 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=VeryPeri&fontSize=90" />
 
-# 첫 번째 단체 프로젝트
+# 🔎 프로젝트 정보
 VeryPeri - Project
 
 ### 프로젝트 개요
