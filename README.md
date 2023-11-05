@@ -1,6 +1,5 @@
 <img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=header&text=　&fontSize=90" />
 <img src="https://github.com/dkth1122/Project_4/assets/130977379/8968344a-101a-4679-8437-072d769dd9b1" />
-![KakaoTalk_20231105_153852606](https://github.com/dkth1122/Project_4/assets/130977379/8968344a-101a-4679-8437-072d769dd9b1)
 
 
 
