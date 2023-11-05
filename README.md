@@ -87,4 +87,6 @@
 ## [💾 Mysql sql문](https://drive.google.com/file/d/1p2fX7tVw0cZz6_HYXW37GWAoF2mk28dh/view?usp=drive_link)
 <br>
 
+<img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=footer&text=&fontSize=90" />
+
 
