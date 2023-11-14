@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=Slice&&height=200&section=header&text=Hello&fontSize=90&fontColor=D3D3D3" />
+<img src="https://capsule-render.vercel.app/api?type=Slice&&height=200&section=header&text=Hello~!!&fontSize=90&fontColor=D3D3D3" />
 <p align="center">
   <img src="https://github.com/dkth1122/Project_4/assets/130977379/8968344a-101a-4679-8437-072d769dd9b1" />
 </p>
@@ -96,6 +96,5 @@
 ## [💾 Mysql sql문](https://drive.google.com/file/d/1p2fX7tVw0cZz6_HYXW37GWAoF2mk28dh/view?usp=drive_link)
 <br>
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=auto&height=200&section=footer&text=&fontSize=90" />
-
+<img src="https://capsule-render.vercel.app/api?type=Slice&height=200&section=footer&text=Good~Bye!&fontSize=90&fontColor=D3D3D3" />
 
