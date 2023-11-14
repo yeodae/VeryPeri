@@ -86,7 +86,7 @@
 <br>
 <br>
 
-## [📺 시연 영상](https://youtu.be/iXRKjnXPNNs?si=N3LWW3soOyu6OSNr)
+## [📺 시연 영상](https://youtu.be/iXRKjnXPNNs?si=2mSmWqsVqH-LkOrt)
 <br>
 
 ## [💾 발표 PPT](https://drive.google.com/file/d/1rG5kZhM1EaDUcfW3BLHAX0UXETSJoOiq/view?usp=drive_link)
