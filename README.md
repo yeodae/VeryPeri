@@ -1,8 +1,9 @@
 
+<img src="https://capsule-render.vercel.app/api?type=slice&text="/>
 <p align="center">
   <img src="https://github.com/dkth1122/Project_4/assets/130977379/8968344a-101a-4679-8437-072d769dd9b1" />
 </p>
-
+https://github.com/yeodae/VeryPeri/assets/137017214/599946e8-d8c0-4eaa-9203-3437c36177f2
 
 
 
