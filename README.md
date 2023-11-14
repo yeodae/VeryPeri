@@ -67,9 +67,14 @@
   <br>
   
 ## ⚙ 주요 기능
-📌동환따봉도치야 도와줘!
-📌
-📌
+📌 로그인 <br>
+<img src='https://github.com/yeodae/VeryPeri/assets/137017214/e0ba216c-a3ac-4f33-90da-59418c2a8d43'><br>
+📌회원가입 <br>
+<img src='https://github.com/yeodae/VeryPeri/assets/137017214/9c5b1bab-f3ad-41a2-b11b-aa4cb1de0929'><br>
+📌위시/장바구니<br>
+<img src='https://github.com/yeodae/VeryPeri/assets/137017214/c8a39186-ef73-4525-96b6-bfc9b33f5f18'><br>
+📌 찜/결제 <br>
+<img src='https://github.com/yeodae/VeryPeri/assets/137017214/364f235a-ff61-4037-8f22-6c484173788a'><br>
 <br>
 <br>
 
