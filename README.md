@@ -1,4 +1,4 @@
-<img src="https://capsule-render.vercel.app/api?type=Slice&&height=200&section=header&text=Hello~!!&fontSize=90&fontColor=D3D3D3" />
+<img src="https://capsule-render.vercel.app/api?type=Slice&&height=200&section=header&text=&fontSize=90&fontColor=D3D3D3" />
 <p align="center">
   <img src="https://github.com/dkth1122/Project_4/assets/130977379/8968344a-101a-4679-8437-072d769dd9b1" />
 </p>
