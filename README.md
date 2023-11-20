@@ -12,7 +12,7 @@
 ## 🔎프로젝트 개요
 
 📆 2023.08.09 ~ 2023.08.28 (22일)<br>
-더조은컴퓨터아카데미 수강 첫 번째 단체 프로젝트.
+더조은컴퓨터아카데미 수강 첫 번째 팀 프로젝트.
 <br>
 <br>
 ## 🔎프로젝트 소개
@@ -95,5 +95,4 @@
 ## [💾 Mysql sql문](https://drive.google.com/file/d/1p2fX7tVw0cZz6_HYXW37GWAoF2mk28dh/view?usp=drive_link)
 <br>
 
-<img src="https://capsule-render.vercel.app/api?type=Slice&height=200&section=footer&text=Good~Bye!&fontSize=90&fontColor=D3D3D3" />
 
