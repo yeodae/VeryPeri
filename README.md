@@ -65,7 +65,7 @@
   <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white">
   <br>
   <br>
-![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=anuraghazra&layout=compact)
+
 ## ⚙ 주요 기능
 📌 로그인 <br>
 <img src='https://github.com/yeodae/VeryPeri/assets/137017214/e0ba216c-a3ac-4f33-90da-59418c2a8d43'><br>
