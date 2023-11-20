@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.UserMapper">
+	<select id="selectUserId" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER
+		WHERE U_PHONE = #{uPhone}
+	</select>
+	<select id="selectUserPw" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER
+		WHERE U_ID = #{uId}
+	</select>
+	<!-- user3.dox -->
+	<select id="selectNonOrderNo" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_ORDER O
+		INNER JOIN T4_DELIVERY D ON O.O_NO = D.O_NO
+		INNER JOIN T4_DELIVERY_USER U ON U.U_ID = D.U_ID
+		WHERE O.O_NO = #{oNo}
+		GROUP BY O.O_NO
+	</select>
+	<insert id="insertUser" parameterType="hashmap" >
+		INSERT INTO T4_USER VALUES
+		(#{uId}, #{uPw}, #{uEventyn}, #{uName}, #{uName2}, #{uPhone}, 0,"N", 0, NOW(),#{uEmail},#{gArtist} , #{gender})
+	</insert>
+	
+	<select id="selectUser" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER U
+		LEFT JOIN T4_BAN B ON U.U_ID = B.U_ID
+		WHERE U.U_ID = #{uId} AND U_PW = #{uPw}
+	</select>
+	
+	<update id="updateUserCnt" parameterType="hashmap">
+		UPDATE T4_USER
+		SET
+			U_CNT = U_CNT + 1
+		WHERE U_ID = #{uId}
+	</update>
+	<update id="resetUserCnt" parameterType="hashmap">
+		UPDATE T4_USER
+		SET
+			U_CNT = 0
+		WHERE U_ID = #{uId}
+	</update>
+	<select id="userCheckId" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER
+		WHERE U_ID = #{uId}
+	</select>
+	<select id="findUserId" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER
+		WHERE U_NAME = #{uName} AND U_PHONE = #{uPhone}
+	</select>
+	<select id="findUserPw" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER
+		WHERE U_NAME = #{uName} AND U_PHONE = #{uPhone} AND U_ID =#{uId}
+	</select>
+	<select id="userCnt" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*) AS CNT
+		FROM T4_USER
+		WHERE U_ID = #{uId}
+	</select>
+	<select id="selectNonOrder" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_ORDER O
+		INNER JOIN T4_DELIVERY D ON O.O_NO = D.O_NO
+		INNER JOIN T4_DELIVERY_USER U ON U.U_ID = D.U_ID
+		WHERE O.O_NO = #{oNo}
+	</select>
+	
+	<update id="infoUpdate" parameterType="hashmap">
+		UPDATE T4_USER
+		SET
+			U_NAME2 = #{uName2},
+			U_PW = #{uPw},
+			U_NAME = #{uName},
+			U_PHONE = #{uPhone},
+			U_SMSYN = #{uSmsyn}
+		WHERE U_ID = #{uId}
+	</update>
+	
+	<delete id="deleteUser" parameterType="hashmap">
+		DELETE FROM T4_USER
+		WHERE U_ID = #{uId}
+	</delete>
+	
+	<!-- 주문내역 페이징 -->
+	<select id="selectOrderListPage" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT * FROM T4_USER
+		WHERE U_ID = #{uId}
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	<select id="selectOrderListPageCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_USER
+	</select>
+		<select id="selectOrderListPageCnt2" resultType="int">
+		SELECT COUNT(*) FROM T4_USER
+		WHERE U_ID = #{uId}
+	</select>
+	
+	
+</mapper>

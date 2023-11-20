@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.ProductMapper">
+	<!-- 상품등록 -->
+	<insert id="insertProduct" parameterType="hashmap" >
+		INSERT INTO T4_PRODUCT VALUES
+		(#{pNo}, #{pName}, #{price}, #{stock}, #{membership}, NOW(), #{pLimit}, #{category}, #{artist}, 'N', #{fYn})
+	</insert>
+	
+	<!-- 상품출력 -->
+	<select id="selectProductList" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT * FROM T4_PRODUCT
+		WHERE 1=1
+		<!-- 상품페이지 카테고리 / 아티스트로 종류 출력 -->
+		<if test="category != null and artist != null">
+        	AND CATEGORY = #{category} AND ARTIST = #{artist}
+    	</if> 
+    	LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- 상품페이지 출력 -->
+	<select id="selectVProductList" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT * FROM T4_PRODUCT
+	</select>
+	
+	<!-- 페이징용 갯수 -->
+	<select id="selectCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_PRODUCT
+	</select>
+	
+	<!-- 상품 조회 이미테이블 조인 수정 여대현-->
+	<select id="selectProductInfo" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT * 
+		FROM T4_PRODUCT P
+		LEFT JOIN T4_PRODUCT_IMG I ON P.P_NO = I.P_NO
+		LEFT JOIN T4_MEMBERSHIP M ON M.ARTIST = P.ARTIST
+		LEFT JOIN T4_USER U ON M.U_ID = U.U_ID
+		WHERE P.P_NO = #{pNo} 
+		GROUP BY IMG_TYPE
+		ORDER BY IMG_TYPE DESC
+	</select>
+	
+	<!-- 아티스트별 상품 조회 > 어드민 페이지 -->
+	<select id="searchProductList" parameterType="hashmap" resultType="com.example.project.model.Product">
+	  SELECT * FROM T4_PRODUCT
+	  <if test="artist != 'All'">
+	    WHERE ARTIST = #{artist}
+	  </if>
+	  LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- 상품 조회 > 어드민 페이지 -->
+	<select id="searchProductList2" parameterType="hashmap" resultType="com.example.project.model.Product">
+	  SELECT * FROM T4_PRODUCT
+	  <if test="keyword != '' and keyword != null">
+	    WHERE P_NAME LIKE CONCAT('%', #{keyword}, '%')
+	      OR P_NO LIKE CONCAT('%', #{keyword}, '%')
+	  </if>
+	  LIMIT #{startNum}, #{lastNum}
+	</select>
+
+	
+	<!-- 상품 삭제 -->
+	<delete id="deleteProduct" parameterType="hashmap">
+		DELETE FROM T4_PRODUCT
+		WHERE P_NO = #{pNo}
+	</delete>
+	
+	<!-- 상품 재고 조회 화면 -->
+	<select id="selectProductStock" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT *
+		FROM T4_PRODUCT
+		WHERE P_NO = #{pNo}
+	</select>
+	
+	<!-- 상품 재고 추가 -->
+	<update id="productStockPLUS" parameterType="hashmap">
+		UPDATE T4_PRODUCT
+		SET
+			STOCK = #{stock}
+		WHERE P_NO = #{pNo}
+	</update>
+	
+	
+	<!-- 이미지등록 -->
+	<insert id="insertProductImg" parameterType="hashmap" >
+		INSERT INTO T4_PRODUCT_IMG(P_NO, path, IMG_TYPE)
+		VALUES
+		(#{pNo}, #{path}, 'Y')
+	</insert>
+	
+	<!-- 상세이미지등록 -->
+	<insert id="insertProductDetailedImg" parameterType="hashmap" >
+		INSERT INTO T4_PRODUCT_IMG(P_NO, path, IMG_TYPE)
+		VALUES
+		(#{pNo}, #{path}, 'N')
+	</insert>
+	
+	<!--  체크박스로  찜목록 제거  -->
+   <delete id="deleteWishProduct" parameterType="hashmap">
+      DELETE FROM T4_WISH
+      WHERE WNUM IN   
+   <foreach collection="list" item="item" open="(" close=")" separator=",">
+         #{item}
+   </foreach>
+   </delete>
+   
+    <!-- 찜목록 출력 -->
+   <select id="selectWishProdeuct" parameterType="hashmap" resultType="com.example.project.model.Wish">
+      SELECT *
+      FROM T4_WISH W
+      INNER JOIN 
+      (SELECT P1.P_NO, P_NAME , PRICE , P_LIMIT, PATH 
+		FROM
+		T4_PRODUCT P1
+		INNER JOIN T4_PRODUCT_IMG P2 ON
+		P1.P_NO = P2.P_NO
+		WHERE IMG_TYPE = 'Y') J
+		ON W.P_NO = J.P_NO
+      WHERE U_ID =  #{uId}
+   </select>
+   
+   <!-- 찜목록 단일 삭제 -->
+   <delete id="deleteSingleProdeuctWish" parameterType="hashmap">
+      DELETE FROM T4_WISH
+      WHERE WNUM = #{wnum}   
+   </delete>
+   
+   <!-- 찜목록 전체 삭제 -->
+   <delete id="deleteAllWish" parameterType="hashmap">
+      DELETE FROM T4_WISH
+      WHERE U_ID = #{uId}   
+   </delete>
+   <!-- 카트 장바구니 등록 -->
+   <insert id="insertcart" parameterType="hashmap">   
+   INSERT INTO T4_CART (U_ID , P_NO) VALUES 
+   (#{uId} , #{pNo})
+   </insert>
+   
+   <!-- 결제시 오더 테이블 등록 -->
+   <insert id="insertProductBuy" parameterType="hashmap">
+    	INSERT INTO T4_ORDER VALUES
+		(NULL, CAST(ROUND(UNIX_TIMESTAMP(NOW())) AS UNSIGNED), #{buyer_name}, #{pNo}, #{pg_tid}, NOW(), #{oCount}, '', 0, #{oMessage})
+   </insert>
+   <!-- 결제시 딜리버리 테이블 등록 -->
+   <insert id="insertProductBuy2" parameterType="hashmap">
+		INSERT INTO T4_DELIVERY (BUY_NO, O_NO, U_ID, D_STATE)
+		VALUES (#{buyNo}, #{oNo}, #{uId}, '업체확인중')
+   </insert>
+   
+   
+   <!-- 아티스트별 상품 페이지 구현 -->
+		<!-- 상품출력 -->
+	<select id="selectProductMain" parameterType="hashmap" resultType="com.example.project.model.Product">
+	    SELECT * FROM T4_PRODUCT P
+	    LEFT JOIN T4_PRODUCT_IMG I ON P.P_NO = I.P_NO
+	    WHERE 1=1
+	    	AND IMG_TYPE = 'Y'
+	   	<if test="artist != null and artist != ''" >
+	        AND ARTIST = #{artist}
+	    </if>
+	    <if test="ctg != null and ctg != ''"  >
+	        AND CATEGORY = #{ctg}
+	    </if>
+	    
+	    <choose>
+	        <when test="selectedOption == 'nameList'">
+	            ORDER BY P_NAME ASC
+	        </when>
+	        <when test="selectedOption == 'minPrice'">
+	            ORDER BY PRICE ASC
+	        </when>
+	        <when test="selectedOption == 'maxPrice'">
+	            ORDER BY PRICE DESC
+	        </when>
+	    </choose>
+	</select>
+	
+	 <!-- 제품별 상품 페이지 구현 -->
+		<!-- 상품출력 -->
+	<select id="selectProductALL" parameterType="hashmap" resultType="com.example.project.model.Product">
+	  SELECT * FROM T4_PRODUCT P
+		LEFT JOIN T4_PRODUCT_IMG I ON P.P_NO = I.P_NO
+		<where>
+		    AND IMG_TYPE = 'Y'
+		    AND CATEGORY = #{ctg}
+		    <if test="artist != null and artist != ''">
+		        AND ARTIST = #{artist}
+		    </if>
+		</where>
+		<choose>
+		    <when test="selectedOption == 'nameList'">
+		        ORDER BY P_NAME ASC
+		    </when>
+		    <when test="selectedOption == 'minPrice'">
+		        ORDER BY PRICE ASC
+		    </when>
+		    <when test="selectedOption == 'maxPrice'">
+		        ORDER BY PRICE DESC
+		    </when>
+		</choose>
+	</select>
+	
+	<!-- 위시리스트출력 -->
+	<insert id="insertWish" parameterType="hashmap">	   	    
+	   INSERT INTO T4_WISH (U_ID, P_NO, IMG_TYPE)
+	   VALUES (#{uId}, #{pNo}, "W")	    
+	</insert>
+	<!-- 위시리스트 중복방지 -->
+	<select id="searchWish" resultType="int">
+	    SELECT COUNT(*) FROM T4_WISH WHERE U_ID = #{uId} AND P_NO = #{pNo}
+	</select>
+	
+	
+	<!-- 새로운 상품 전체출력 -->
+	<select parameterType="hashmap" id="searchProductNewList" resultType="com.example.project.model.Product">
+	SELECT * 
+	FROM T4_PRODUCT P
+	INNER JOIN T4_PRODUCT_IMG I ON I.P_NO = P.P_NO
+	WHERE IMG_TYPE = 'Y'
+	ORDER BY P_DATE DESC LIMIT 15
+	</select>
+	
+		<!-- 베스트아이템 -->
+	<select parameterType="hashmap" id="bestItemLoad" resultType="com.example.project.model.Product">
+	SELECT *, COUNT(*) AS CNT
+	FROM T4_ORDER O
+	INNER JOIN T4_PRODUCT P ON P.P_NO = O.P_NO 
+	INNER JOIN T4_PRODUCT_IMG I ON I.P_NO =O.P_NO
+	WHERE IMG_TYPE = 'Y'
+	GROUP BY O.P_NO
+	ORDER BY CNT ASC LIMIT 15;
+	</select>
+	
+
+	
+	
+	<!-- 주문내역상세 출력 -->
+	<select id="selectOrderpuduct" parameterType="hashmap" resultType="com.example.project.model.Product">		
+         SELECT *
+		FROM T4_ORDER O
+		    INNER JOIN T4_PRODUCT P ON P.P_NO = O.P_NO
+		    LEFT JOIN T4_PRODUCT_IMG I ON P.P_NO = I.P_NO
+		    INNER JOIN T4_DELIVERY D ON O.O_NO = D.O_NO
+		    INNER JOIN T4_USER U ON U.U_ID = O.U_ID
+		    INNER JOIN T4_DELIVERY_USER DU ON DU.U_ID = O.U_ID
+		WHERE O.O_NO = #{oNo} AND IMG_TYPE = 'Y'
+		GROUP BY P.P_NO;
+         
+         
+	</select>
+	<!-- 주문내역상세 출력 날짜조회 -->
+	<select id="selectOrderpuductSearch" parameterType="hashmap" resultType="com.example.project.model.Product">		
+			SELECT O.O_NO, O.*, P.*, D.*, U.*, A.*, B.*
+			FROM T4_ORDER O
+			INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+			INNER JOIN T4_DELIVERY_USER U ON O.U_ID = U.U_ID
+			INNER JOIN (
+				SELECT O_NO, SUM(PAYMENT) AS PAYMENT_SUM
+				FROM T4_ORDER
+				GROUP BY O_NO
+			) B ON O.O_NO = B.O_NO
+			INNER JOIN (
+			    SELECT O.O_NO, COUNT(*) AS CNT
+			    FROM T4_ORDER O
+			    INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+			    INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			        AND O.O_NO = O.O_NO
+			    GROUP BY O.O_NO
+			) A ON O.O_NO = A.O_NO
+			    AND D.DU_NO = U.DU_NO
+			WHERE O.U_ID = #{uId} AND O_DATE BETWEEN #{startDate} AND #{endDate}
+			GROUP BY O.O_NO
+	</select>	
+	<select id="together" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT * FROM T4_PRODUCT P
+		INNER JOIN T4_PRODUCT_IMG I ON P.P_NO = I.P_NO
+		WHERE ARTIST = #{artist} AND IMG_TYPE = "Y" 
+		ORDER BY P.P_NO DESC LIMIT 2;
+	</select>
+</mapper>

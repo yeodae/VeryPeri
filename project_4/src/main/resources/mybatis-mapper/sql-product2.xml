@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.CartMapper">
+	
+	<!-- 장바구니 -->
+	<select id="cart" parameterType="hashmap" resultType="com.example.project.model.Wish">
+	SELECT *
+	FROM T4_WISH W
+	LEFT JOIN T4_PRODUCT P ON W.P_NO = P.P_NO
+	</select>
+	
+	<delete id="deletecart" parameterType="hashmap">
+		DELETE FROM T4_WISH
+		WHERE p_No = #{pNo}
+		
+	</delete>
+	
+</mapper>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.InquiryMapper">
+
+	<!-- 미답변 문의 목록 출력 -->
+	<select id="selectInquiryList" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY
+		WHERE STATE != 'SOLVED' AND I_COMPLAIN = 'N'
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- 문의 검색 -->
+	<select id="searchInquiryList" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY
+		WHERE 1=1
+		<if test="keyword != '' and keyword != null" >
+			AND  I_NO = #{keyword} OR U_ID = #{keyword};
+		</if>
+		<if test="keyword == '' or keyword == null" >
+			AND STATE != 'SOLVED';
+		</if>
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_INQUIRY
+		WHERE STATE != 'SOLVED'
+	</select>
+	
+	<!-- 문의 보기 -->
+	<select id="selectInquiryInfo" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY
+		WHERE I_NO = #{iNo}
+	</select>
+	
+	<!-- 문의 답변 -->
+	<update id="updateInquiryAnswer" parameterType="hashmap">
+		UPDATE T4_INQUIRY
+		SET
+			CATEGORY = #{category},
+			STATE = #{state},
+			P_NO = #{pNo},
+			I_ACONTENT = #{iAcontent},
+			I_COMPLAIN = #{iComplain},
+			I_ATIME = NOW()
+		WHERE I_NO = #{iNo}
+	</update>
+	
+	<!-- 마이페이지 1:1문의내역 출력 -->
+	<select id="selectMypageInquiry" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY I
+		LEFT JOIN T4_INQUIRY_IMG M ON I.I_NO = M.I_NO
+		<if test='iNo == null'>
+		WHERE U_ID = #{uId} 
+		</if>
+		<if test='iNo != null'>
+		WHERE U_ID = #{uId} AND I.I_NO = #{iNo}
+		</if>
+	</select>
+	
+	<!-- 마이페이지 1:1문의 게시글등록 -->
+	<insert id="myPageinsertBoard" parameterType="hashmap" useGeneratedKeys="true" keyProperty="iNo" keyColumn="I_NO">
+		INSERT INTO T4_INQUIRY (I_QTITLE, I_QCONTENT, I_QTIME, U_ID, CATEGORY, STATE)VALUES
+		(#{iQtitle}, #{iQcontent}, NOW(), #{uId}, #{category}, 'OPEN')
+	</insert>
+	<!-- 마이페이지 1:1문의 이미지첨부 -->
+	<insert id="myPageinsertBoardImg" parameterType="hashmap">
+		INSERT INTO T4_INQUIRY_IMG (I_NO, PATH, FILENAME)
+		VALUES
+			(#{iNo}, #{path}, #{filename})
+	</insert>
+	
+	<select id="selectInquiry" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY
+		ORDER BY I_NO DESC
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	<select id="selectCnt2" resultType="int">
+		SELECT COUNT(*) FROM T4_INQUIRY
+	</select>
+	
+	
+	
+</mapper>

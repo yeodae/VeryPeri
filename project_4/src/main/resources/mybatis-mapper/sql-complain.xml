@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.ComplainMapper">
+
+	<!-- 미답변 민원 목록 출력 -->
+	<select id="selectComplainList" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT * FROM T4_INQUIRY
+		WHERE STATE != 'SOLVED' AND I_COMPLAIN = 'Y'
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt2" resultType="int">
+		SELECT COUNT(*) FROM T4_INQUIRY
+		WHERE STATE != 'SOLVED' AND I_COMPLAIN = 'Y'
+	</select>
+	
+	<!-- 민원 여부 등록 -->
+	<update id="complainYn" parameterType="hashmap">
+		UPDATE T4_INQUIRY
+		SET
+			I_COMPLAIN = #{iComplain}
+		WHERE I_NO = #{iNo}
+	</update>
+	
+</mapper>

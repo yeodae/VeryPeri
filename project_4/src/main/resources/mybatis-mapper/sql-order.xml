@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.OrderMapper">
+
+	<select id="orderCntselect" parameterType="hashmap" resultType="com.example.project.model.Order">
+		SELECT
+	    	U_ID, EXCHANGE,
+	    COUNT(*) AS orderCnt
+		FROM
+		    T4_ORDER
+		  WHERE U_ID = #{uId}
+			GROUP BY #{uId}, EXCHANGE
+	</select>
+	
+	<!--  구매상품 확인 -->
+	<select id="orderProductSelect" parameterType="hashmap" resultType="com.example.project.model.Order">	
+	SELECT * FROM
+	T4_ORDER O INNER JOIN 	
+	(
+	SELECT P1.P_NO, P_NAME , PRICE , P_LIMIT, PATH 
+	FROM
+	T4_PRODUCT P1
+	INNER JOIN T4_PRODUCT_IMG P2 ON
+	P1.P_NO = P2.P_NO
+	WHERE IMG_TYPE = 'Y'
+	) J
+	ON O.P_NO = J.P_NO
+	WHERE U_ID =  #{uId}
+	 
+	</select>
+	
+   <!-- 주문정보 확인 -->
+   <select id="selectOrderList" parameterType="hashmap" resultType="com.example.project.model.Order">
+      SELECT *
+         FROM T4_ORDER O
+         INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+         INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+         INNER JOIN (
+      SELECT O_NO, COUNT(*) AS CNT 
+            FROM T4_DELIVERY
+            GROUP BY O_NO
+            )A ON O.O_NO = A.O_NO
+         WHERE D_STATE = '업체확인중'
+      ORDER BY O.O_NO ASC
+
+   </select>
+   
+   <!-- 페이징용 카운트 -->
+   <select id="selectCnt3" resultType="int">
+      SELECT COUNT(DISTINCT O.O_NO) AS CNT
+      FROM T4_ORDER O
+      INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+      INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+      WHERE D_STATE = '업체확인중';
+   </select>
+	
+	<!-- 오더 상태 변경 -->
+	<update id="updateOrder" parameterType="hashmap">
+	    UPDATE T4_DELIVERY D
+	    INNER JOIN T4_ORDER O ON O.BUY_NO = D.BUY_NO
+	    SET
+	    	D_STATE = #{dState},
+	    	EXCHANGE = #{exchange}
+	    WHERE (EXCHANGE IS NULL OR EXCHANGE = '') AND O.O_NO = #{oNo}
+	</update>
+	
+	<!-- 오더 상태 변경 개별 -->
+	<update id="updateOrderInfo" parameterType="hashmap">
+	    UPDATE T4_DELIVERY D
+	    INNER JOIN T4_ORDER O ON O.BUY_NO = D.BUY_NO
+	    SET
+	    	D_STATE =#{dState},
+	    	EXCHANGE = #{exchange}
+	    WHERE O.BUY_NO = #{buyNo} 
+	</update>
+	
+		<!-- 주문내역 조회 -->
+	<select id="selectOrderp" parameterType="hashmap" resultType="com.example.project.model.Product">
+			SELECT O.O_NO, O.*, P.*, D.*, U.*, A.*, B.*
+			FROM T4_ORDER O
+			INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+			INNER JOIN T4_DELIVERY_USER U ON O.U_ID = U.U_ID
+			INNER JOIN (
+			   SELECT O_NO, COUNT(*) AS CNT 
+				FROM T4_ORDER
+				WHERE U_ID = #{uId}
+				GROUP BY O_NO
+			) A ON O.O_NO = A.O_NO
+				INNER JOIN (
+				SELECT O_NO, SUM(PAYMENT) AS PAYMENT_SUM
+				FROM T4_ORDER
+				GROUP BY O_NO
+			) B ON O.O_NO = B.O_NO
+			   WHERE D.DU_NO = U.DU_NO AND U.U_ID = #{uId}
+			GROUP BY O.O_NO
+			ORDER BY O_DATE DESC
+	</select>
+	
+	<!-- 사용자 장바구니 출력 -->
+	<select id="selectcartlist" parameterType="hashmap" resultType="com.example.project.model.Product">
+		SELECT *
+		FROM
+		T4_CART C INNER JOIN  
+		(SELECT P1.P_NO, P_NAME , PRICE , P_LIMIT, PATH 
+		FROM
+		T4_PRODUCT P1
+		INNER JOIN T4_PRODUCT_IMG P2 ON
+		P1.P_NO = P2.P_NO
+		WHERE IMG_TYPE = 'Y') P
+		ON C.P_NO = P.P_NO
+		WHERE U_ID = #{uId}		
+	</select>
+	
+		<!-- 구매확정으로 업데이트 -->
+	<update id="mypageOrderConfirm" parameterType="hashmap">
+		UPDATE T4_DELIVERY
+		SET
+		   D_STATE = '구매확정'
+		WHERE BUY_NO = #{buyNo}
+	</update>
+	
+	<!-- 구매 전 취소 --> 
+	<update id="mypageOrderCancel" parameterType="hashmap">
+		UPDATE T4_DELIVERY D
+		INNER JOIN T4_ORDER O ON D.BUY_NO = O.BUY_NO
+		SET
+		   D_STATE = '고객 사유로 거절',
+		   EXCHANGE = 'R'
+		WHERE D.BUY_NO = #{buyNo}
+	</update>
+	
+	<!-- 배송 완료 후 교환/반품 -->
+	<!-- 1. 기존 오더/딜리버리 상태변경 -->
+	<update id="mypageOrderchangeUpdate" parameterType="hashmap">
+		UPDATE T4_DELIVERY D
+		INNER JOIN T4_ORDER O ON D.BUY_NO = O.BUY_NO
+		SET
+		   D.D_STATE = #{dState},
+		   O.EXCHANGE = #{exchange}
+		WHERE D.BUY_NO = #{buyNo}
+	</update>
+	<!-- 2. 교환/반품사유 인서트 -->
+	<insert id="mypageOrderchangeInsert" parameterType="hashmap">
+		INSERT INTO T4_EXCHANGE VALUES
+		(NULL, #{buyNo}, #{exchange}, #{bReasons});
+	</insert>
+	
+	<!-- 유저 포인트 추가 -->
+	<update id="userPointAdd">
+		UPDATE T4_USER
+		SET
+			U_POINT = U_POINT + #{userPointAdd}
+		WHERE U_ID = #{uId}
+	</update>
+	
+	<!-- 유저 포인트 테이블에 정보 추가 -->
+	<insert id="userPointAdd2">
+		INSERT INTO T4_USER_POINT (O_NO, POINT, PODATA) 
+		VALUES (#{oNo}, #{userPointAdd}, NOW());
+	</insert>
+	
+	<!-- 비회원 주문내역 조회  -->
+	<select id="selectNonOrderList" parameterType="hashmap" resultType="com.example.project.model.Order">
+		SELECT *
+		FROM T4_ORDER O
+		INNER JOIN T4_DELIVERY D ON O.O_NO = D.O_NO
+		INNER JOIN T4_DELIVERY_USER U ON U.U_ID = D.U_ID
+		WHERE O.O_NO = #{nmNo} AND U_DPHONE = #{nmPhone}
+	</select>
+	
+	<!-- 비회원 결제성공 페이지 -->
+	<select id="nonPaymentkkk" parameterType="hashmap" resultType="com.example.project.model.Order">
+		SELECT * 
+      FROM T4_ORDER O
+      INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO      
+      WHERE O.O_NO = #{oNo} 
+	</select>
+</mapper>

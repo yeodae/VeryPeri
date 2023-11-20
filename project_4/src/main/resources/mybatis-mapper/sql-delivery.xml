@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.DeliveryMapper">
+	<select id="selectDeliveryUser" parameterType="hashmap" resultType="com.example.project.model.DeliveryUser">
+		SELECT *
+		FROM T4_DELIVERY_USER
+		WHERE U_ID = #{uId}
+		<if test="duNo != null || duNo == ''">
+			AND DU_NO = #{duNo}
+		</if>
+	</select>
+	
+	<!-- 배송주소록 수정 -->
+	<update id="updateAddr" parameterType="hashmap">
+		UPDATE T4_DELIVERY_USER
+		SET
+			U_DADDR = #{addr},
+			U_DADDRDETAIL = #{addrDetail},
+			U_DNAME = #{uDname},
+			RECIPIENT = #{recipient},
+			U_DPHONE = #{uDphone},
+			ZIPNO = #{zipNo}
+		WHERE U_ID = #{uId} AND DU_NO = #{duNo}
+	</update>
+
+	
+	<!-- 배송주소지 등록 -->
+	<insert id="insertAddr" parameterType="hashmap" >
+		INSERT INTO T4_DELIVERY_USER (U_ID, U_DNAME,RECIPIENT, U_DPHONE, U_DADDR, U_DADDRDETAIL, ZIPNO, U_DMESSAGE) VALUES
+		(#{uId}, #{uDname},#{recipient}, #{uDphone}, #{addr}, #{addrDetail}, #{zipNo}, #{uDmessage}) 
+	</insert>
+	
+	<!-- 선택 배송주소록 삭제 -->
+	<delete id="deleteAddr" parameterType="hashmap">
+		DELETE FROM T4_DELIVERY_USER
+	    WHERE DU_NO = #{duNo}
+	</delete>
+	
+	<!-- 주문정보 확인 -->
+	<select id="deliveryListSelect" parameterType="hashmap" resultType="com.example.project.model.Order">
+			SELECT O.O_NO, O.*, P.*, D.*, U.*, A.CNT
+			FROM T4_ORDER O
+			INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+			INNER JOIN T4_DELIVERY_USER U ON O.U_ID = U.U_ID
+			INNER JOIN (
+			    SELECT O.O_NO, COUNT(*) AS CNT
+			    FROM T4_ORDER O
+			    INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+			    INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			     WHERE O.O_NO = O.O_NO
+			        AND (EXCHANGE IS NULL OR EXCHANGE = '')
+			    GROUP BY O.O_NO
+			) A ON O.O_NO = A.O_NO
+			WHERE D_STATE IN ('상품 준비중', '배송 준비중', '배송중')
+			    AND (EXCHANGE IS NULL OR EXCHANGE = '')
+			    AND D.DU_NO = U.DU_NO
+			GROUP BY O.O_NO
+			ORDER BY
+			    CASE D_STATE
+			        WHEN '상품 준비중' THEN 1
+			        WHEN '배송 준비중' THEN 2
+			        WHEN '배송중' THEN 3
+			        WHEN '배송완료' THEN 4
+			    END;
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt4" resultType="int">
+		SELECT COUNT(DISTINCT O_NO) AS CNT
+		FROM T4_DELIVERY
+		WHERE D_STATE IN ('상품 준비중', '배송 준비중', '배송중')
+	</select>
+	
+	<!-- 주문번호별 배송 현황 -->
+	<select id="deliveryInfoSelect" parameterType="hashmap" resultType="com.example.project.model.Order">
+		SELECT *
+		FROM T4_ORDER O
+		INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+		INNER JOIN T4_DELIVERY D ON O.BUY_NO = D.BUY_NO
+		INNER JOIN T4_DELIVERY_USER U ON O.U_ID = U.U_ID
+		LEFT JOIN (
+			SELECT O.O_NO, COUNT(*) AS CNT
+			FROM T4_ORDER O
+			INNER JOIN T4_DELIVERY D ON O.O_NO = D.O_NO
+			INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+			WHERE D_STATE IN ('상품 준비중', '배송 준비중', '배송중', '배송완료') AND O.O_NO = O.O_NO
+			GROUP BY O.O_NO)A ON O.O_NO = A.O_NO
+		WHERE O.O_NO = #{oNo} AND D.DU_NO = U.DU_NO
+		ORDER BY
+			CASE D_STATE
+			WHEN '상품 준비중' THEN 1
+			WHEN '배송 준비중' THEN 2
+			WHEN '배송중' THEN 3
+			WHEN '배송완료' THEN 4
+		END
+	</select>
+	
+	<!-- 배송완료 상태 변경 -->
+	<update id="updateOrder2" parameterType="hashmap">
+	    UPDATE T4_DELIVERY D
+	    INNER JOIN T4_ORDER O ON O.BUY_NO = D.BUY_NO
+	    SET
+	    	D_STATE = #{dState},
+	    	D_DATE = NOW()
+	    WHERE (EXCHANGE IS NULL OR EXCHANGE = '') AND O.O_NO = #{oNo}
+	</update>
+	
+	<!-- 배송완료 상태 변경 개별 -->
+	<update id="updateOrderInfo2" parameterType="hashmap">
+	    UPDATE T4_DELIVERY D
+	    INNER JOIN T4_ORDER O ON O.BUY_NO = D.BUY_NO
+	    SET
+	    	D_STATE =#{dState},
+	    	D_DATE = NOW()
+	    WHERE O.BUY_NO = #{buyNo} 
+	</update>
+</mapper>

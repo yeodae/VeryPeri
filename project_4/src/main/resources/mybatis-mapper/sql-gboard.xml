@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.GBoardMapper">
+
+	<!-- 게시글 조회 기능  + 이미지 출력-->
+	<select id="selectGBoardList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT G.*, U.*, I.*, P.*, COUNT(C.G_NO) AS GC_CNT
+		FROM T4_GBOARD G
+		INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+		LEFT JOIN T4_GBOARD_IMG I ON G.G_NO = I.G_NO
+		LEFT JOIN T4_GCOMMENTS C ON G.G_NO = C.G_NO
+		LEFT JOIN T4_GBOARD_PROFILE P ON U.U_ID = P.U_ID AND G.ARTIST = P.ARTIST
+		WHERE G.ARTIST = #{artist} AND (GC_DELYN = 'N' OR GC_DELYN IS NULL)
+		<if test="gNo != null">
+		    AND G.G_NO = #{gNo}
+		</if>
+		GROUP BY G.G_NO
+		ORDER BY G_DATE DESC
+	</select>
+	
+	<!-- 아티스트 글만 출력 + 이미지 출력 -->
+	<select id="selectArtistGBoard" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		    SELECT G.*, U.*, I.*, P.*, 
+		           (SELECT COUNT(*) FROM T4_GCOMMENTS C WHERE C.G_NO = G.G_NO) AS GC_CNT
+		    FROM T4_GBOARD G
+		    INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+		    LEFT JOIN T4_GBOARD_IMG I ON G.G_NO = I.G_NO
+			LEFT JOIN T4_GBOARD_PROFILE P ON U.U_ID = P.U_ID AND G.ARTIST = P.ARTIST
+		    WHERE G.ARTIST = #{artist} AND U.G_ARTIST = 'Y'
+	    <if test="gNo != null">
+	        AND G.G_NO = #{gNo}
+	    </if>
+	    ORDER BY G_DATE DESC
+	</select>
+	
+	<!-- 게시글 작성 기능 -->
+	<insert id="insertGBoard"  parameterType="hashmap"  useGeneratedKeys="true"  keyProperty="gNo"  keyColumn="G_NO">
+		INSERT INTO T4_GBOARD VALUES
+		(NULL,'N', NOW(), #{uId}, 0 , #{artist}, #{content}, 0, #{check})
+	</insert>
+	
+	<!-- 게시글 작성 유저가 아티스트인지 체크 -->
+	<select id="selectArtistCheck" parameterType="hashmap" resultType="int">
+		SELECT COUNT(*)
+	    FROM T4_MEMBERSHIP G
+	    INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+	    WHERE U.U_ID = #{uId} AND G_ARTIST = 'Y'
+	</select>
+	
+	<!-- 게시글 작성 중 파일 첨부-->
+	<insert id="insertGBoardImg" parameterType="hashmap">
+		INSERT INTO T4_GBOARD_IMG(G_NO, FILENAME, PATH)
+		VALUES
+			(#{gNo}, #{filename}, #{path})
+	</insert>
+	
+	<!-- 게시글 삭제 기능 -->
+	<update id="deleteGBoard" parameterType="hashmap" >
+		UPDATE T4_GBOARD SET 	
+			G_DELYN = 'Y'
+		WHERE G_NO = #{gNo}
+	</update>
+	
+	<!-- 게시글 삭제 시 이미지 제거-->
+	<delete id="deleteGBoardImg" parameterType="hashmap">
+		DELETE FROM T4_GBOARD_IMG
+	    WHERE G_NO = #{gNo}
+	</delete>
+	
+	<!-- 검색 기능 -->
+	<select id="selectGBoardInfo" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+	 	SELECT *
+		FROM T4_GBOARD G
+		INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+		 LEFT JOIN T4_GBOARD_IMG I ON G.G_NO = I.G_NO
+		 LEFT JOIN T4_GBOARD_PROFILE P ON U.U_ID = P.U_ID AND G.ARTIST = P.ARTIST
+		WHERE G.ARTIST = #{artist} 
+		AND (NICKNAME LIKE CONCAT('%', #{keyword}, '%') OR G_CONTENT LIKE CONCAT('%', #{keyword}, '%') OR G.U_ID LIKE CONCAT('%', #{keyword}, '%'))
+	</select>
+	
+	<!-- 게시글 테이블 좋아요 +1 기능 -->
+	<update id="plusLikeGBoard" parameterType="hashmap">
+	    UPDATE T4_GBOARD SET
+	    G_LIKE = G_LIKE + 1
+	    WHERE ARTIST = #{artist} AND G_NO = #{gNo}
+	</update>
+	
+	<!-- 게시글 테이블 좋아요 -1 기능 -->
+	<update id="minusLikeGBoard" parameterType="hashmap">
+	    UPDATE T4_GBOARD SET
+	    G_LIKE = G_LIKE - 1
+	    WHERE ARTIST = #{artist} AND G_NO = #{gNo}
+	</update>
+	
+	<!-- 좋아요 테이블에 좋아요 +1 기능 -->
+	<insert id="plusLike" parameterType="hashmap">
+	    INSERT INTO T4_GBOARD_LIKE (U_ID, G_NO)
+	    VALUES( #{uId}, #{gNo} )
+	</insert>
+	
+	<!-- 좋아요 테이블에 좋아요 -1 기능 -->
+	<delete id="minusLike" parameterType="hashmap">
+		DELETE FROM T4_GBOARD_LIKE
+	    WHERE G_NO = #{gNo} AND U_ID = #{uId}
+	</delete>
+	
+	<!-- 좋아요 여부 확인 -->
+	<select id="checkLike" parameterType="hashmap" resultType="int">
+	    SELECT COUNT(*)
+	    FROM T4_GBOARD_LIKE
+	    WHERE G_NO = #{gNo} AND U_ID = #{uId}
+	</select>
+	
+	<!-- 댓글 조회 기능 -->
+	<select id="selectComment" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS G
+		INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+		LEFT JOIN T4_GBOARD_IMG I ON G.G_NO = I.G_NO
+		LEFT JOIN T4_GBOARD_PROFILE P ON U.U_ID = P.U_ID AND G.ARTIST = P.ARTIST
+		WHERE G.ARTIST = #{artist} AND G.G_NO = #{gNo} AND G.GC_GROUP IS NULL
+		ORDER BY GC_DATE DESC
+	</select>
+	
+	<!-- 댓글 추가 기능 -->
+	<insert id="insertComment" parameterType="hashmap">
+		INSERT INTO T4_GCOMMENTS VALUES
+		(NULL, #{artist}, #{gNo}, #{uId}, #{comment}, 0, NOW(),'N', NULL, 0, #{check})
+	</insert>
+	
+	<!-- 댓글 삭제 기능 -->
+	<update id="deleteComment" parameterType="hashmap">
+		UPDATE T4_GCOMMENTS SET 
+			GC_DELYN = 'Y'
+			WHERE GC_NO = #{gcNo}
+	</update>
+	
+	<!-- 댓글용 좋아요  -->
+		<!-- 댓글 테이블 좋아요 +1 기능 -->
+	<update id="plusLikeComment" parameterType="hashmap">
+	    UPDATE T4_GCOMMENTS SET
+	    GC_LIKE = GC_LIKE + 1
+	    WHERE ARTIST = #{artist} AND GC_NO = #{gcNo}
+	</update>
+	
+	<!-- 댓글 테이블 좋아요 -1 기능 -->
+	<update id="minusLikeComment" parameterType="hashmap">
+	    UPDATE T4_GCOMMENTS SET
+	    GC_LIKE = GC_LIKE - 1
+	    WHERE ARTIST = #{artist} AND GC_NO = #{gcNo}
+	</update>
+	
+	<!-- 댓글 좋아요 테이블에 좋아요 +1 기능 -->
+	<insert id="plusLikeComment2" parameterType="hashmap">
+	    INSERT INTO T4_GCOMMENTS_LIKE (U_ID, GC_NO, GCLIKE_DATE)
+	    VALUES( #{uId}, #{gcNo}, NOW() )
+	</insert>
+	
+	<!-- 댓글 좋아요 테이블에 좋아요 -1 기능 -->
+	<delete id="minusLikeComment2" parameterType="hashmap">
+		DELETE FROM T4_GCOMMENTS_LIKE
+	    WHERE GC_NO = #{gcNo} AND U_ID = #{uId}
+	</delete>
+	
+	<!-- 댓글 좋아요 여부 확인 -->
+	<select id="checkLikeComment" parameterType="hashmap" resultType="int">
+	    SELECT COUNT(*)
+	    FROM T4_GCOMMENTS_LIKE
+	    WHERE GC_NO = #{gcNo} AND U_ID = #{uId}
+	</select>
+	
+	<!-- 대댓글 추가 기능 -->
+	<insert id="insertCocomment" parameterType="hashmap">
+		INSERT INTO T4_GCOMMENTS VALUES
+		(NULL, #{artist}, #{gNo}, #{uId}, #{cocomment}, 0, NOW(), 'N', #{gcNo}, 0, #{check})
+	</insert>
+	
+		
+	<!-- 대댓글 전부 출력  기능 -->
+	<select id="selectCocomment" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		    FROM T4_GCOMMENTS G
+		    LEFT JOIN T4_GBOARD_PROFILE P ON G.U_ID = P.U_ID AND G.ARTIST = P.ARTIST
+			WHERE G.G_NO = #{gNo} AND G.GC_GROUP = #{gcNo} AND G.GC_GROUP IS NOT NULL
+	</select>
+	
+	<!-- 대댓글 삭제 기능 -->
+	<update id="deleteCocomment" parameterType="hashmap">
+	    UPDATE T4_GCOMMENTS SET
+	    GC_DELYN = 'Y'
+	    WHERE GC_NO = #{gcNo}
+	</update>
+	
+	<!-- 신고 기능들 구현 -->
+	
+	<!-- 게시글 신고 테이블 전체 출력 -->
+	<select id="selectReportBoard" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GBOARD_REPORT
+	</select>
+	
+	<!-- 댓글 신고 테이블 전체 출력 -->
+	<select id="selectReportComm" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS_REPORT
+	</select>
+	
+	<!-- 1. 게시글 신고  : Report 테이블에 인서트-->
+	<insert id="insertReport" parameterType="hashmap">
+		INSERT INTO T4_GBOARD_REPORT (G_NO, REASON, OTHER_REASON, DESCRIPTION, U_ID)
+		VALUES (#{gNo}, #{reason}, #{otherReason}, #{description}, #{uId})
+	</insert>
+	
+	<!-- 2. GBoard에 신고 횟수 추가 -->
+	<update  id="reportCnt" parameterType="hashmap">
+		UPDATE T4_GBOARD
+		SET G_BANYN = G_BANYN + 1
+		WHERE G_NO = #{gNo}
+	</update>
+	
+	<!-- 1. 댓글, 대댓글 신고  : Report 테이블에 인서트-->
+	<insert id="insertGCReport" parameterType="hashmap">
+		INSERT INTO T4_GCOMMENTS_REPORT (GC_NO, REASON, OTHER_REASON, DESCRIPTION, U_ID)
+		VALUES (#{gcNo}, #{reason}, #{otherReason}, #{description}, #{uId})
+	</insert>
+	
+	<!-- 2. T4_GCOMMENTS에 신고 횟수 추가 -->
+	<update  id="gcBanCnt" parameterType="hashmap">
+		UPDATE T4_GCOMMENTS
+		SET GC_BANYN = GC_BANYN + 1
+		WHERE GC_NO = #{gcNo}
+	</update>
+	
+	<!-- 마이페이지 내 작성 글 정보 출력  -->
+	<select id="selectMypageGBoard" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+	   	SELECT *
+		FROM T4_GBOARD G
+		INNER JOIN T4_USER U ON G.U_ID = U.U_ID 														
+	   	WHERE U.U_ID = #{uId} AND G_BANYN &lt; 5 AND G_DELYN = 'N'
+	</select>
+	
+	<!-- 마이페이지 내 댓글작성 -->
+	<select id="selectMypageComment" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS  																				
+		WHERE U_ID = #{uId} AND GC_GROUP IS NULL AND GC_BANYN &lt; 5 AND GC_DELYN = 'N'
+	</select>
+	
+	<!-- 마이페이지 내 대댓글작성 -->
+	<select id="selectMypageCoComment" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS  																				
+		WHERE U_ID = #{uId} AND GC_GROUP IS NOT NULL AND GC_BANYN &lt; 5 AND GC_DELYN = 'N'
+	</select>
+	
+	
+	<!-- 유저 조인 멤버쉽 테이블 해서 멤버쉽 정보 출력-->
+	<select id="selectMembership" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_MEMBERSHIP M
+		INNER JOIN T4_USER U ON M.U_ID = U.U_ID
+	   	WHERE U.U_ID = #{uId} AND M.M_EXP_DATE > CURDATE();
+	</select>
+	
+	<!-- 프로필 출력 -->
+	<select id="selectProfile" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GBOARD_PROFILE
+		WHERE U_ID = #{uId}
+	</select>
+	
+	<!-- 프로필 등록 기능 -->
+	<insert id="insertProfile"  parameterType="hashmap"  useGeneratedKeys="true"  keyProperty="gpNo"  keyColumn="GP_NO">
+		INSERT INTO T4_GBOARD_PROFILE VALUES
+		(NULL,#{uId}, #{nickName}, #{artist} , NULL, NULL)
+	</insert>
+	
+	<!-- 프로필 업데이트 기능 -->
+	<update id="updateProfile"  parameterType="hashmap" >
+		UPDATE T4_GBOARD_PROFILE
+		SET NICKNAME = #{nickName}
+		WHERE GP_NO = #{gpNo}
+	</update>
+	
+	<!-- 프로필 이미지 업데이트-->
+	<update id="updateProfileImg" parameterType="hashmap">
+		UPDATE T4_GBOARD_PROFILE
+		SET GP_FILENAME = #{filename}, GP_PATH = #{path}
+		WHERE GP_NO = #{gpNo}
+	</update>
+	
+	<!-- 프로필 이미지 제거 업데이트-->
+	<update id="deleteProfileImg" parameterType="hashmap">
+		UPDATE T4_GBOARD_PROFILE
+		SET GP_FILENAME = NULL, GP_PATH = NULL
+		WHERE GP_NO = #{gpNo}
+	</update>
+	
+<!-- 알림 기능 구현  -->
+	<!-- 게시글 알람 인서트 기능 -->
+	<insert id="insertAlarm" parameterType="hashmap">
+		INSERT T4_GBOARD_NOTICE (U_ID, NO_TYPE, G_NO, NO_MESSAGE, NO_TIME, G_ARTIST)
+		VALUES(#{uId}, #{type}, #{gNo}, #{message}, NOW(), #{check})
+	</insert>
+	
+	<!-- 게시글 알람 읽음 처리 업데이트 -->
+	<update id="updateAleramRead" parameterType="hashmap">
+		UPDATE T4_GBOARD_NOTICE
+		SET NO_READ = 'Y'
+		WHERE NO_NO = #{noNo}
+	</update>
+	
+	<!-- 서비스에서 중복 알람 발생 방지  :  내 알람 출력용 -->
+	<select id="selectMyBoadAlarmList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT U_ID, NO_TYPE, G_NO
+		FROM T4_GBOARD_NOTICE
+	</select>
+	
+	<!-- 출력용 : 내 특정 게시글에 댓글 단 아이디 + 댓글 단 갯수 표기 -->
+	<select id="selectMyBoadCommentList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT C.U_ID, COUNT(*) AS myBoardCommentCnt
+	    FROM T4_GBOARD G
+	    INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+	    INNER JOIN T4_GCOMMENTS C ON G.G_NO = C.G_NO
+	    WHERE U.U_ID = #{uId} AND U.U_ID = G.U_ID AND G.G_NO = #{gNo}
+	    GROUP BY C.U_ID
+	</select>
+	
+	<!-- 출력용 : 내 특정 게시글에 좋아요가 눌렸을 때 누가 했는지 + 좋아요 갯수 표기 -->
+	<select id="selectMyBoardLikeList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT L.U_ID, COUNT(*) AS myBoardLikeCnt
+	    FROM T4_GBOARD G
+	    INNER JOIN T4_USER U ON G.U_ID = U.U_ID
+	    INNER JOIN T4_GBOARD_LIKE L ON G.G_NO = L.G_NO
+	    WHERE U.U_ID = #{uId} AND U.U_ID = G.U_ID AND G.G_NO = #{gNo}
+	    GROUP BY L.U_ID
+	</select>
+	
+	
+<!-- 댓글용 알람 기능 -->	
+	
+	<!-- 댓글용 알람 인서트 기능 -->
+	<insert id="insertCommentAlarm" parameterType="hashmap">
+		INSERT T4_GCOMMENTS_NOTICE (U_ID, CNO_TYPE, GC_NO, CNO_MESSAGE, CNO_TIME, GC_ARTIST)
+		VALUES(#{uId}, #{type}, #{gcNo}, #{message}, NOW(), #{check})
+	</insert>
+	
+	<!-- 댓글용 알람 읽음 처리 업데이트 -->
+	<update id="updateCommentAleramRead" parameterType="hashmap">
+		UPDATE T4_GCOMMENTS_NOTICE
+		SET CNO_READ = 'Y'
+		WHERE CNO_NO = #{cNoNo}
+	</update>
+	
+	
+	<!-- 서비스에서 중복 알람 발생 방지  :  내 알람 출력용 -->
+	<select id="selectMyCommentAlarmList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT U_ID, CNO_TYPE, GC_NO
+		FROM T4_GCOMMENTS_NOTICE
+	</select>
+	
+	
+	<!-- 출력용 : 내 특정 댓글에 대댓글이 달렸을 때 아이디 + 갯수 -->
+	<select id="selectMyCommentCoCommentList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT C.U_ID, COUNT(*) AS myCommentCoComment
+	    FROM T4_GCOMMENTS C
+	    INNER JOIN T4_USER U ON C.U_ID = U.U_ID
+	    INNER JOIN T4_GCOMMENTS T ON C.GC_NO = T.GC_GROUP 
+	    WHERE U.U_ID= #{uId} AND U.U_ID = C.U_ID AND C.GC_NO = #{gcNo} 
+	    GROUP BY C.U_ID
+	</select>
+	
+	<!-- 출력용 : 내 특정 댓글에 좋아요가 눌렸을 때 아이디 + 갯수 -->
+	<select id="selectMyCommentLikeList" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT L.U_ID, COUNT(*) AS myCommentLikeCnt
+	    FROM T4_GCOMMENTS C
+	    LEFT JOIN T4_USER U ON C.U_ID = U.U_ID
+	    INNER JOIN T4_GCOMMENTS_LIKE L ON L.GC_NO = C.GC_NO
+	    WHERE U.U_ID = #{uId} AND U.U_ID = C.U_ID AND C.GC_NO = #{gcNo}
+	    GROUP BY L.U_ID
+	</select>
+	
+	<!-- 게시글 최신 알람 1개 -->
+	<select id="selectAlarm" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GBOARD G 
+		INNER JOIN T4_GBOARD_NOTICE N ON G.G_NO = N.G_NO
+		WHERE G.U_ID = #{uId} AND ARTIST = #{artist}
+		ORDER BY G_DATE DESC LIMIT 1
+	</select>
+	
+	<!-- 댓글 최신 알람 1개 -->
+	<select id="selectAlarm2" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS G 
+		INNER JOIN T4_GCOMMENTS_NOTICE N ON G.GC_NO = N.GC_NO
+		WHERE G.U_ID = #{uId} AND ARTIST = #{artist}
+		ORDER BY GC_DATE DESC LIMIT 1
+	</select>
+	
+	<!-- 아티스트 최신 게시글 알람 1개 -->
+	<select id="selectAlarm3" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GBOARD G 
+		INNER JOIN T4_GBOARD_NOTICE N ON G.G_NO = N.G_NO
+		WHERE N.G_ARTIST = 'Y' AND RIGHT(N.U_ID, 3) = #{artist}
+		ORDER BY G_DATE DESC LIMIT 1
+	</select>
+	
+	<!-- 아티스트 최신 댓글 알람 1개 -->
+	<select id="selectAlarm4" parameterType="hashmap" resultType="com.example.project.model.GBoard">
+		SELECT *
+		FROM T4_GCOMMENTS G 
+		INNER JOIN T4_GCOMMENTS_NOTICE N ON G.GC_NO = N.GC_NO
+		WHERE N.GC_ARTIST = 'Y' AND RIGHT(N.U_ID, 3) = #{artist}
+		ORDER BY GC_DATE DESC LIMIT 1
+	</select>
+	
+</mapper>

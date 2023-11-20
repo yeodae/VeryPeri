@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.BanMapper">
+	
+	<!-- 유저 정지 -->
+	<insert id="userBan" parameterType="hashmap">
+		INSERT INTO T4_BAN VALUES (#{uId}, 'Y', #{bReasons}, NOW())
+	</insert>
+	
+	<!-- 정지 해제 -->
+	<delete id="fnUserBanDel" parameterType="hashmap">
+		DELETE FROM T4_BAN
+		WHERE U_ID = #{uId}
+	</delete>
+	
+</mapper>

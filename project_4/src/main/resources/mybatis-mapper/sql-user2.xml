@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.User2Mapper">
+
+	<!-- admin전용 회원 정보 출력 -->
+	<select id="selectUserList" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER U
+		LEFT JOIN T4_BAN B ON U.U_ID = B.U_ID
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- admin전용 회원 정보 검색 -->
+	<select id="searchUserList" parameterType="hashmap" resultType="com.example.project.model.User">
+	    SELECT *
+	    FROM T4_USER U
+	    LEFT JOIN T4_BAN B ON U.U_ID = B.U_ID
+	    WHERE 1=1
+	    <if test="keyword != '' and keyword != null">
+	        AND U.U_ID LIKE CONCAT('%', #{keyword}, '%')
+	    </if>
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_USER
+	</select>
+	
+	<!-- 고객 비밀번호 오류 횟수 초기화 -->
+	<update id="userCntReset" parameterType="hashmap">
+		UPDATE T4_USER
+		SET
+			U_CNT = 0
+		WHERE U_ID = #{uId}
+	</update>
+	
+	<!--회원 정보 상세보기 -->
+	<select id="selectUserInfo" parameterType="hashmap" resultType="com.example.project.model.User">
+		SELECT *
+		FROM T4_USER U
+		LEFT JOIN T4_BAN B ON U.U_ID = B.U_ID
+		WHERE U.U_ID = #{uId}
+	</select>
+	
+	<!-- 고객 비밀번호 초기화 -->
+	<update id="userPwReset" parameterType="hashmap">
+	    UPDATE T4_USER
+	    SET U_PW = RIGHT(#{uResetPw}, 4)
+	    WHERE U_ID = #{uId}
+	</update>
+	
+	<!-- 고객 포인트 변경 -->
+	<update id="userPointAdd" parameterType="hashmap">
+		UPDATE T4_USER
+		SET
+			U_POINT = U_POINT + (#{pointAdd})
+		WHERE U_ID = #{uId}
+	</update>
+		
+	<!-- 고객 문의 확인 (상세페이지용) -->
+	<select id="user2SelectInquiry" parameterType="hashmap" resultType="com.example.project.model.Inquiry">
+		SELECT *
+		FROM T4_INQUIRY
+		WHERE U_ID = #{uId}
+		ORDER BY 
+		  CASE STATE 
+		     WHEN 'OPEN' THEN 1
+		     WHEN 'PENDING' THEN 2
+		     WHEN 'SOLVED' THEN 3
+		     ELSE 4
+		END ASC, I_QTIME ASC
+
+	</select>
+	
+	<!-- 고객 주문 내역 확인 (상세페이지용) -->
+	<select id="user2SelectOrder" parameterType="hashmap" resultType="com.example.project.model.Order">
+		SELECT *
+		FROM T4_ORDER O
+		INNER JOIN T4_PRODUCT P ON O.P_NO = P.P_NO
+		WHERE U_ID = #{uId}
+	</select>
+	
+	<!-- 고객 이벤트 응모내역 확인 (상세페이지용) -->
+	<select id="user2SelectApply" parameterType="hashmap" resultType="com.example.project.model.Apply">
+	SELECT *
+	FROM T4_APPLY A
+	INNER JOIN T4_EVENT E ON A.EVT_NO = E.EVT_NO
+	WHERE U_ID = #{uId} AND E_YN = 'Y'
+	ORDER BY (CASE WHEN E_PRIZE IS NULL OR E_PRIZE = '' THEN 2 ELSE 1 END) DESC, 
+	         E_PRIZE DESC
+	</select>
+	
+	<!-- 고객 배송 정보 확인 (상세페이지용) -->
+	<select id="user2SelectDelivery" parameterType="hashmap" resultType="com.example.project.model.DeliveryUser">
+		SELECT *
+		FROM T4_DELIVERY_USER
+		WHERE U_ID = #{uId}
+		ORDER BY FIXADDR DESC
+	</select>
+	
+</mapper>

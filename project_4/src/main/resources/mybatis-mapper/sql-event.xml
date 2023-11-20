@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.EventMapper">
+
+	<!-- 이벤트 목록 출력 -->
+	<select id="selectEventList" parameterType="hashmap" resultType="com.example.project.model.Event">
+		SELECT *
+		FROM T4_EVENT
+		ORDER BY EVT_YN DESC
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_EVENT
+	</select>
+	
+	<!-- 이벤트 추가 -->
+	<insert id="insertEvent" parameterType="hashmap">
+		INSERT INTO T4_EVENT
+		VALUES(#{evtName}, #{evtNo}, #{artist}, 'N', #{pNo})
+	</insert>
+	
+	<!-- 이벤트 수정 -->
+	<update id="updateEvent" parameterType="hashmap">
+		UPDATE T4_EVENT
+		SET
+			EVT_YN = #{evtYn}
+		WHERE EVT_NO = #{evtNo}
+			
+	</update>
+	
+	<!-- 이벤트 상품 구매했는지 확인 -->
+	<select id="evtApplyProduct" parameterType="hashmap" resultType="com.example.project.model.Event">
+		SELECT U_ID, COUNT(*) AS CNT, E.P_NO
+		FROM T4_EVENT E
+		INNER JOIN T4_ORDER O ON O.P_NO = E.P_NO
+		WHERE E.EVT_NO = #{evtNo} AND U_ID = #{uId}
+		GROUP BY U_ID
+	</select>
+	
+	<!-- 이벤트 응모내역이 있는지 확인 -->
+	<select id="evtApplyYn" parameterType="hashmap" resultType="int">
+	    SELECT COUNT(*) AS CNT2
+	    FROM T4_APPLY
+	    WHERE U_ID = #{uId} AND EVT_NO = #{evtNo}
+	</select>
+	
+	<!-- 이벤트 응모 -->
+	<insert id="evtApply">
+		INSERT INTO T4_APPLY VALUES
+		(#{pNo}, #{evtNo}, #{uId}, #{eUname}, #{eUphone}, #{eYn}, NULL)
+	</insert>
+	
+</mapper>

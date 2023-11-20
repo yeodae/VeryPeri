@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.example.project.mapper.ABoardMapper">
+	
+	<!-- 게시글 리스트 페이징 -->
+	<select id="selectABoardList" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD
+		ORDER BY A_NO DESC
+		LIMIT #{startNum}, #{lastNum}
+	</select>
+	<!-- 게시글 리스트 -->
+	<select id="selectABoardList2" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD B
+		LEFT JOIN T4_A_ATTACHED_FILE_ABOARD P ON B.A_NO = P.AAF_NO
+		WHERE A_KIND = '공지'
+		ORDER BY A_NO DESC
+	</select>
+	<!-- 공지만 보기 리스트 -->
+	<select id="selectABoardList3" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD B
+		LEFT JOIN T4_A_ATTACHED_FILE_ABOARD P ON B.A_NO = P.AAF_NO
+		WHERE A_KIND ='공지'
+		ORDER BY A_NO DESC
+	</select>
+	<!-- 이벤트만 보기 리스트 -->
+	<select id="selectABoardList4" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD B
+		LEFT JOIN T4_A_ATTACHED_FILE_ABOARD P ON B.A_NO = P.AAF_NO
+		WHERE A_KIND ='이벤트'
+		ORDER BY A_NO DESC
+	</select>
+	
+	<!-- 페이징용 카운트 -->
+	<select id="selectCnt" resultType="int">
+		SELECT COUNT(*) FROM T4_ABOARD
+	</select>
+	<!-- 페이징용 카운트2 -->
+	<select id="selectCntAboard" resultType="int">
+		SELECT COUNT(*) FROM T4_ABOARD
+		WHERE A_KIND = '공지'
+	</select>
+	
+	<!-- 게시글 등록 -->
+	<insert id="insertABoard" parameterType="hashmap" useGeneratedKeys="true" keyProperty="idx" keyColumn="AAF_NO">
+		INSERT INTO T4_ABOARD 
+		VALUES(NULL, #{aTitle}, #{aContent}, NOW(), #{aKind}, '0', #{artist}, NULL, #{evtNo})
+	</insert>
+	
+	<!-- 첨부파일 등록 -->
+	<insert id="insertAboardImg" parameterType="hashmap">
+		INSERT INTO T4_A_ATTACHED_FILE_ABOARD(AAF_NO, THUMBNAIL, FILENAME)
+		VALUES
+			(#{idx}, #{path}, #{filename})
+	</insert>
+	
+	<!-- 게시글 보기 -->
+	<select id="selectABoardInfo" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD B
+		LEFT JOIN T4_A_ATTACHED_FILE_ABOARD P ON B.A_NO = P.AAF_NO
+		LEFT JOIN T4_EVENT E ON B.EVT_NO = E.EVT_NO
+		WHERE B.A_NO = #{aNo}
+	</select>
+	
+	<!-- 게시글 수정 -->
+	<update id="updateABoard" parameterType="hashmap">
+		UPDATE T4_ABOARD
+		SET
+			A_TITLE = #{aTitle},
+			A_CONTENT = #{aContent},
+			A_KIND = #{aKind},
+			ARTIST = #{artist}
+		WHERE A_NO = #{aNo}
+	</update>
+	
+	<!-- 게시글 삭제 -->
+	<delete id="deleteABoard" parameterType="hashmap">
+		DELETE FROM T4_ABOARD
+		WHERE A_NO = #{aNo}
+	</delete>
+	<!-- 게시글 삭제 -->
+	<delete id="deleteABoardImg" parameterType="hashmap">
+		DELETE FROM T4_A_ATTACHED_FILE_ABOARD
+		WHERE AAF_NO = #{aNo}
+	</delete>
+	
+	<!-- 공지사항 조회수 증가 -->
+	<update id="ABoardCnt" parameterType="hashmap">
+		UPDATE T4_ABOARD
+		SET
+			HITS = HITS + 1
+		WHERE A_NO = #{aNo}
+	</update>
+	
+		<!-- 이벤트 아티스트별 인포 리스트 -->
+	<select id="selectEventAtistInfo" parameterType="hashmap" resultType="com.example.project.model.ABoard">
+		SELECT *
+		FROM T4_ABOARD B
+		LEFT JOIN T4_A_ATTACHED_FILE_ABOARD P ON B.A_NO = P.AAF_NO
+		WHERE A_KIND ='이벤트' AND ARTIST = #{artist}
+		ORDER BY A_NO DESC
+	</select>
+	
+</mapper>
